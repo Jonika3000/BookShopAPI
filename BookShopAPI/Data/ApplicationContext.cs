@@ -11,12 +11,12 @@ namespace BookShopAPI.Data
         {
 
         }
+        public DbSet<PublishingHouseEntity> PublishingHouses { get; set; }
         public DbSet<AuthorEntity> Authors { get; set; }
         public DbSet<BlogEntity> Blogs { get; set; }
-        public DbSet<CategoryEntity> Categories { get; set; }
-        public DbSet<CommentsEntity> Comments { get; set; }
+        public DbSet<CategoryEntity> Categories { get; set; } 
         public DbSet<ImagesBookEntity> ImagesBook { get; set; }
         public DbSet<ItemEntity> Books { get; set; }
-        public DbSet<UserEntity> Users { get; set; }
+        public DbSet<SalesEntity> Sales { get; set; }
     }
 }

@@ -15,5 +15,9 @@ namespace BookShopAPI.Data.Entities
         public int CategoryId { get; set; }
         [ForeignKey(nameof(CategoryId))]
         public CategoryEntity Category { get; set; }
+        public int PublishingHouseId { get; set; }
+
+        [ForeignKey(nameof(PublishingHouseId))]
+        public PublishingHouseEntity  publishingHouse { get; set; }
     }
 }

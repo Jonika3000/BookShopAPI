@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookShopAPI.Migrations
 {
     [DbContext(typeof(ApplicationContext))]
-    [Migration("20230612155411_Start")]
+    [Migration("20230612162237_Start")]
     partial class Start
     {
         /// <inheritdoc />
@@ -96,33 +96,6 @@ namespace BookShopAPI.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("BookShopAPI.Data.Entities.CommentsEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BookId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BookId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Comments");
-                });
-
             modelBuilder.Entity("BookShopAPI.Data.Entities.ImagesBookEntity", b =>
                 {
                     b.Property<int>("Id")
@@ -174,16 +147,21 @@ namespace BookShopAPI.Migrations
                     b.Property<int>("PageCount")
                         .HasColumnType("int");
 
+                    b.Property<int>("PublishingHouseId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorEntityId");
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("PublishingHouseId");
+
                     b.ToTable("Books");
                 });
 
-            modelBuilder.Entity("BookShopAPI.Data.Entities.UserEntity", b =>
+            modelBuilder.Entity("BookShopAPI.Data.Entities.PublishingHouseEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -191,48 +169,21 @@ namespace BookShopAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Avatar")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ConfirmPassword")
+                    b.Property<string>("Image")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NickName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Password")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("BookShopAPI.Data.Entities.CommentsEntity", b =>
-                {
-                    b.HasOne("BookShopAPI.Data.Entities.ItemEntity", "Item")
-                        .WithMany()
-                        .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("BookShopAPI.Data.Entities.UserEntity", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Item");
-
-                    b.Navigation("User");
+                    b.ToTable("publishingHouses");
                 });
 
             modelBuilder.Entity("BookShopAPI.Data.Entities.ImagesBookEntity", b =>
@@ -258,10 +209,23 @@ namespace BookShopAPI.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("BookShopAPI.Data.Entities.PublishingHouseEntity", "publishingHouse")
+                        .WithMany("Books")
+                        .HasForeignKey("PublishingHouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Category");
+
+                    b.Navigation("publishingHouse");
                 });
 
             modelBuilder.Entity("BookShopAPI.Data.Entities.AuthorEntity", b =>
+                {
+                    b.Navigation("Books");
+                });
+
+            modelBuilder.Entity("BookShopAPI.Data.Entities.PublishingHouseEntity", b =>
                 {
                     b.Navigation("Books");
                 });

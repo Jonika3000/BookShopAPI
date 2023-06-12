@@ -55,20 +55,18 @@ namespace BookShopAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "publishingHouses",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    NickName = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Password = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ConfirmPassword = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Avatar = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Image = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_publishingHouses", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -82,6 +80,7 @@ namespace BookShopAPI.Migrations
                     Image = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PageCount = table.Column<int>(type: "int", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
+                    PublishingHouseId = table.Column<int>(type: "int", nullable: false),
                     AuthorEntityId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -98,31 +97,10 @@ namespace BookShopAPI.Migrations
                         principalTable: "Categories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Comments",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    BookId = table.Column<int>(type: "int", nullable: false),
-                    content = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Comments", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Comments_Books_BookId",
-                        column: x => x.BookId,
-                        principalTable: "Books",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Comments_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
+                        name: "FK_Books_publishingHouses_PublishingHouseId",
+                        column: x => x.PublishingHouseId,
+                        principalTable: "publishingHouses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -158,14 +136,9 @@ namespace BookShopAPI.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Comments_BookId",
-                table: "Comments",
-                column: "BookId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Comments_UserId",
-                table: "Comments",
-                column: "UserId");
+                name: "IX_Books_PublishingHouseId",
+                table: "Books",
+                column: "PublishingHouseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ImagesBook_ItemId",
@@ -180,13 +153,7 @@ namespace BookShopAPI.Migrations
                 name: "Blogs");
 
             migrationBuilder.DropTable(
-                name: "Comments");
-
-            migrationBuilder.DropTable(
                 name: "ImagesBook");
-
-            migrationBuilder.DropTable(
-                name: "Users");
 
             migrationBuilder.DropTable(
                 name: "Books");
@@ -196,6 +163,9 @@ namespace BookShopAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Categories");
+
+            migrationBuilder.DropTable(
+                name: "publishingHouses");
         }
     }
 }
