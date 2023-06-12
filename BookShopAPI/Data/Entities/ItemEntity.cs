@@ -12,6 +12,7 @@ namespace BookShopAPI.Data.Entities
         public string Description { get; set; }
         public string Image { get; set; }
         public int PageCount { get; set;}
+        public string Price { get; set; }   
         public int CategoryId { get; set; }
         [ForeignKey(nameof(CategoryId))]
         public CategoryEntity Category { get; set; }
