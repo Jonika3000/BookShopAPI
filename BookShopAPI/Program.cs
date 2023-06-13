@@ -1,5 +1,6 @@
 using BookShopAPI.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using System;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,8 +21,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors();
-
+app.UseCors(conf =>
+    conf.AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowAnyOrigin());
+var dir = Path.Combine(Directory.GetCurrentDirectory(), "images");
+if (!Directory.Exists(dir))
+    Directory.CreateDirectory(dir);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(dir),
+    RequestPath = "/images"
+});
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

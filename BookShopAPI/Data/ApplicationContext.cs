@@ -1,6 +1,7 @@
 ﻿using BookShopAPI.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Reflection.Metadata;
 
 namespace BookShopAPI.Data
 {
@@ -18,5 +19,10 @@ namespace BookShopAPI.Data
         public DbSet<ImagesBookEntity> ImagesBook { get; set; }
         public DbSet<ItemEntity> Books { get; set; }
         public DbSet<SalesEntity> Sales { get; set; }
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<ItemEntity>()
+                .ToTable(tb => tb.HasTrigger("trg_Books_Insert"));
+        }
     }
 }

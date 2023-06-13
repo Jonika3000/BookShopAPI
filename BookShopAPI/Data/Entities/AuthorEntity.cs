@@ -8,6 +8,7 @@ namespace BookShopAPI.Data.Entities
         public int Id { get; set; }
         public string FirstName { get; set; }
         public string Surname { get; set; }
+        public string Image { get; set; }
         public string Description { get; set; } 
         public string Year { get; set; }
         public List<ItemEntity> Books { get; set; }
