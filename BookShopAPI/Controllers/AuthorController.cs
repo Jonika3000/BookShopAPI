@@ -35,7 +35,15 @@ namespace BookShopAPI.Controllers
                 .ToListAsync();
             return Ok(result);
         }
-
+        [HttpGet("authorById/{id}")]
+        public async Task<IActionResult> authorById(string id)
+        {
+            var result = await applicationContext.Authors.Where(a=>a.Id == Convert.ToInt32(id)).FirstAsync();
+            if (result == null)
+                return BadRequest();
+            else
+            return Ok(result);
+        }
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] AuthorCreateViewModel model)
         {

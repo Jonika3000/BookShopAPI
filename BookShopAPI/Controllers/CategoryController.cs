@@ -1,9 +1,6 @@
 ﻿using BookShopAPI.Data.Entities;
-using Microsoft.AspNetCore.Mvc;
-using static System.Net.Mime.MediaTypeNames;
-using System;
-using BookShopAPI.Data;
-using BookShopAPI.Models.Category;
+using Microsoft.AspNetCore.Mvc; 
+using BookShopAPI.Data; 
 using Microsoft.EntityFrameworkCore;
 
 namespace BookShopAPI.Controllers
@@ -21,17 +18,24 @@ namespace BookShopAPI.Controllers
         [HttpGet("list")]
         public async Task<IActionResult> List()
         {
-            var result = await applicationContext.Categories
-                .Select(x => new CategoryViewModel
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Description = x.Description 
-                })
-                .ToListAsync();
+            var result = await applicationContext.Categories.ToListAsync();
             return Ok(result);
         }
-
+        [HttpGet("category/{slug}")]
+        public async Task<IActionResult> GetBooksBySlug(string Slug)
+        {
+            if(Slug == "all")
+            {
+                var allBooks = await applicationContext.Books.ToListAsync();
+                return Ok(allBooks);
+            }
+            else
+            {
+                var result = await applicationContext.Books.Where(b => b.Category.Slug == Slug).ToListAsync();
+                return Ok(result);
+            } 
+            return BadRequest();
+        }
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CategoryEntity model)
         {
