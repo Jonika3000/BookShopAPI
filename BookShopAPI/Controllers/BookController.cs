@@ -5,6 +5,7 @@ using BookShopAPI.Models.Item;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BookShopAPI.Controllers
 {
@@ -22,7 +23,7 @@ namespace BookShopAPI.Controllers
         public async Task<IActionResult> List()
         {
             var result = await applicationContext.Books
-                .Select(x => new ItemEntity
+                .Select(x => new BookEntity
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -54,7 +55,7 @@ namespace BookShopAPI.Controllers
                     saveImage.Save(Path.Combine(dirSave, imageName));
                 }
             }
-            ItemEntity book = new ItemEntity
+            BookEntity book = new BookEntity
             {
                 Name = model.Name,
                 Description = model.Description,
@@ -98,10 +99,9 @@ namespace BookShopAPI.Controllers
         }
         [HttpGet("getBookById/{id}")]
         public async Task<IActionResult> GetBookById(string id)
-        {
-            //Console.WriteLine(ctx.Test1.Select(x => x.Id).Union(ctx.Test2.Select(x => x.Id)).ToString());
+        { 
             var book = await applicationContext.Books
-        .Include(b => b.Author)
+        .Include(b => b.Author).Include(b=>b.publishingHouse)
         .FirstOrDefaultAsync(b => b.Id == Convert.ToInt32(id));
             if (book == null)
                 return BadRequest();
@@ -115,11 +115,47 @@ namespace BookShopAPI.Controllers
                     PageCount = book.PageCount,
                     Price = Convert.ToInt32(book.Price),
                     AuthorName = book.Author.FirstName +" "+ book.Author.Surname,
-                    IdAuthor = book.Author.Id
+                    IdAuthor = book.Author.Id,
+                    HouseName = book.publishingHouse.Name,
+                    HouseId = book.publishingHouse.Id
                 };
                 return Ok(result);
             }
         }
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            int bookId = Convert.ToInt32(id);
+
+            var book = await applicationContext.Books.FindAsync(bookId);
+            if (book == null)
+                return NotFound();
+             
+            var bookImages = await applicationContext.ImagesBook.Where(img => img.ItemId == bookId).ToListAsync();
+             
+            foreach (var image in bookImages)
+            {
+                string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", image.Url);
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+            }
+            applicationContext.ImagesBook.RemoveRange(bookImages);
+            string imagePathBook = Path.Combine(Directory.GetCurrentDirectory(), "images", book.Image);
+            if (System.IO.File.Exists(imagePathBook))
+            {
+                System.IO.File.Delete(imagePathBook);
+            }
+            var salesBook = await applicationContext.Sales.Where(s => s.BookId == bookId).ToListAsync();
+            applicationContext.Sales.RemoveRange(salesBook);
+            applicationContext.Books.Remove(book);
+
+            await applicationContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
         [HttpGet("getBookImagesById/{id}")]
         public async Task<IActionResult> getBookImagesById(string id)
         {

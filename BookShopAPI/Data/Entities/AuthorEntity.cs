@@ -11,6 +11,6 @@ namespace BookShopAPI.Data.Entities
         public string Image { get; set; }
         public string Description { get; set; } 
         public string Year { get; set; }
-        public List<ItemEntity> Books { get; set; }
+        public List<BookEntity> Books { get; set; }
     }
 }

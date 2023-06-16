@@ -11,6 +11,6 @@ namespace BookShopAPI.Data.Entities
         public string Url { get; set; }
         public int ItemId { get; set; }
         [ForeignKey(nameof(ItemId))]
-        public ItemEntity Item { get; set; }
+        public BookEntity Item { get; set; }
     }
 }

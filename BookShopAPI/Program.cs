@@ -1,23 +1,94 @@
+using BookShopAPI.Abstract;
 using BookShopAPI.Data;
+using BookShopAPI.Data.Entities.Identity;
+using BookShopAPI.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System;
+using System.Reflection;
+using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("MyConnectionString")));
-builder.Services.AddControllers();
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyConnectionString"))); 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-var app = builder.Build();
 
+builder.Services.AddIdentity<UserEntity, RoleEntity>(options =>
+{
+    options.Stores.MaxLengthForKeys = 128;
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 5;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+})
+    .AddEntityFrameworkStores<ApplicationContext>()
+    .AddDefaultTokenProviders();
+
+var signinKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<String>("JwtSecretKey")));
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(cfg =>
+{
+    cfg.RequireHttpsMetadata = false;
+    cfg.SaveToken = true;
+    cfg.TokenValidationParameters = new TokenValidationParameters()
+    {
+        IssuerSigningKey = signinKey,
+        ValidateAudience = false,
+        ValidateIssuer = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+var assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+builder.Services.AddSwaggerGen(c =>
+{
+    var fileDoc = Path.Combine(AppContext.BaseDirectory, $"{assemblyName}.xml");
+    c.IncludeXmlComments(fileDoc);
+    c.AddSecurityDefinition("Bearer",
+        new OpenApiSecurityScheme
+        {
+            Description = "Jwt Auth header using the Bearer scheme",
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer"
+        });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference=new OpenApiReference
+                {
+                    Id="Bearer",
+                    Type = ReferenceType.SecurityScheme
+                }
+            }, new List<string>()
+        }
+    });
+});
+
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+builder.Services.AddControllers();
+var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -41,5 +112,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.SeedData();
 
 app.Run();

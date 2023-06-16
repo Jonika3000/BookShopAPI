@@ -118,7 +118,7 @@ namespace BookShopAPI.Migrations
                     b.ToTable("ImagesBook");
                 });
 
-            modelBuilder.Entity("BookShopAPI.Data.Entities.ItemEntity", b =>
+            modelBuilder.Entity("BookShopAPI.Data.Entities.BookEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -222,7 +222,7 @@ namespace BookShopAPI.Migrations
 
             modelBuilder.Entity("BookShopAPI.Data.Entities.ImagesBookEntity", b =>
                 {
-                    b.HasOne("BookShopAPI.Data.Entities.ItemEntity", "Item")
+                    b.HasOne("BookShopAPI.Data.Entities.BookEntity", "Item")
                         .WithMany()
                         .HasForeignKey("ItemId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -231,7 +231,7 @@ namespace BookShopAPI.Migrations
                     b.Navigation("Item");
                 });
 
-            modelBuilder.Entity("BookShopAPI.Data.Entities.ItemEntity", b =>
+            modelBuilder.Entity("BookShopAPI.Data.Entities.BookEntity", b =>
                 {
                     b.HasOne("BookShopAPI.Data.Entities.AuthorEntity", null)
                         .WithMany("Books")
@@ -256,7 +256,7 @@ namespace BookShopAPI.Migrations
 
             modelBuilder.Entity("BookShopAPI.Data.Entities.SalesEntity", b =>
                 {
-                    b.HasOne("BookShopAPI.Data.Entities.ItemEntity", "Book")
+                    b.HasOne("BookShopAPI.Data.Entities.BookEntity", "Book")
                         .WithMany()
                         .HasForeignKey("BookId")
                         .OnDelete(DeleteBehavior.Cascade)

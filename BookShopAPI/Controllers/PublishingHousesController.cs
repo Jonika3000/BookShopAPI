@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using BookShopAPI.Models.PublishingHouse;
 using BookShopAPI.Helpers;
 using System.Drawing;
+using Microsoft.Data.SqlClient;
 
 namespace BookShopAPI.Controllers
 {
@@ -62,6 +63,37 @@ namespace BookShopAPI.Controllers
             await applicationContext.AddAsync(PublishingHouse);
             await applicationContext.SaveChangesAsync();
             return Ok(PublishingHouse);
+        }
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var House = await applicationContext.PublishingHouses.FindAsync(Convert.ToInt32(id));
+            if (House == null)
+                return NotFound();
+
+            string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", House.Image);
+            if (System.IO.File.Exists(imagePath))
+            {
+                System.IO.File.Delete(imagePath);
+            }
+            var HouseBooks = await applicationContext.Books.Where(b => b.PublishingHouseId ==
+            Convert.ToInt32(id)).ToListAsync();
+            applicationContext.Books.RemoveRange(HouseBooks);
+            applicationContext.PublishingHouses.Remove(House);
+            await applicationContext.SaveChangesAsync();
+
+            return Ok();
+        }
+        [HttpGet("publishingHouse/{id}")]
+        public async Task<IActionResult> publishingHouseById(string id)
+        {
+            SqlParameter param = new SqlParameter("@HouseId", id);
+            var result = await applicationContext.PublishingHouses.FromSqlRaw($"EXEC GetHouseDataById @HouseId", param)
+                .ToListAsync();
+            if (result[0] == null)
+                return BadRequest();
+            else
+                return Ok(result[0]); 
         }
     }
 }

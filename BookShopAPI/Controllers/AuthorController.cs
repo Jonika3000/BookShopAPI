@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using BookShopAPI.Models.Author;
 using BookShopAPI.Helpers;
 using System.Drawing;
+using Microsoft.Data.SqlClient;
+using System.Numerics;
 
 namespace BookShopAPI.Controllers
 {
@@ -38,12 +40,34 @@ namespace BookShopAPI.Controllers
         [HttpGet("authorById/{id}")]
         public async Task<IActionResult> authorById(string id)
         {
-            var result = await applicationContext.Authors.Where(a=>a.Id == Convert.ToInt32(id)).FirstAsync();
-            if (result == null)
+           SqlParameter param = new  SqlParameter("@id", id);
+            var result = await applicationContext.Authors.FromSqlRaw($"EXEC GetAuthorDataById @id",param).ToListAsync();
+            if (result[0] == null)
                 return BadRequest();
             else
-            return Ok(result);
+            return Ok(result[0]);
         }
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var author = await applicationContext.Authors.FindAsync(Convert.ToInt32(id));
+            if (author == null)
+                return NotFound();
+            string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", author.Image);
+            if (System.IO.File.Exists(imagePath))
+            {
+                System.IO.File.Delete(imagePath);
+            }
+            
+            var authorBooks = await applicationContext.Books.Where(b => b.AuthorId == 
+            Convert.ToInt32(id)).ToListAsync();
+            applicationContext.Books.RemoveRange(authorBooks);
+            applicationContext.Authors.Remove(author);
+            await applicationContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] AuthorCreateViewModel model)
         {
@@ -69,7 +93,7 @@ namespace BookShopAPI.Controllers
                 Description = model.Description,
                 Year = model.Year,
                 Image= imageName,
-                Books = new List<ItemEntity>()
+                Books = new List<BookEntity>()
             };
             await applicationContext.AddAsync(author);
             await applicationContext.SaveChangesAsync();

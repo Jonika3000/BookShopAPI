@@ -36,6 +36,22 @@ namespace BookShopAPI.Controllers
             } 
             return BadRequest();
         }
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            var Category = await applicationContext.Categories.FindAsync(Convert.ToInt32(id));
+            if (Category == null)
+                return NotFound();
+
+             
+            var CategoryBooks = await applicationContext.Books.Where(b => b.CategoryId ==
+            Convert.ToInt32(id)).ToListAsync();
+            applicationContext.Books.RemoveRange(CategoryBooks);
+            applicationContext.Categories.Remove(Category);
+            await applicationContext.SaveChangesAsync();
+
+            return Ok();
+        }
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] CategoryEntity model)
         {

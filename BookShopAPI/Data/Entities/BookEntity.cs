@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace BookShopAPI.Data.Entities
 {
     [Table("Books")]
-    public class ItemEntity
+    public class BookEntity
     {
         [Key]
         public int Id { get; set; }
