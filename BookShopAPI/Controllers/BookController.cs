@@ -1,11 +1,11 @@
 ﻿using BookShopAPI.Data;
 using BookShopAPI.Data.Entities;
 using BookShopAPI.Helpers;
+using BookShopAPI.Models.Author;
 using BookShopAPI.Models.Item;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BookShopAPI.Controllers
 {
@@ -99,9 +99,9 @@ namespace BookShopAPI.Controllers
         }
         [HttpGet("getBookById/{id}")]
         public async Task<IActionResult> GetBookById(string id)
-        { 
+        {
             var book = await applicationContext.Books
-        .Include(b => b.Author).Include(b=>b.publishingHouse)
+        .Include(b => b.Author).Include(b => b.publishingHouse)
         .FirstOrDefaultAsync(b => b.Id == Convert.ToInt32(id));
             if (book == null)
                 return BadRequest();
@@ -114,13 +114,58 @@ namespace BookShopAPI.Controllers
                     Image = book.Image,
                     PageCount = book.PageCount,
                     Price = Convert.ToInt32(book.Price),
-                    AuthorName = book.Author.FirstName +" "+ book.Author.Surname,
+                    AuthorName = book.Author.FirstName + " " + book.Author.Surname,
                     IdAuthor = book.Author.Id,
                     HouseName = book.publishingHouse.Name,
                     HouseId = book.publishingHouse.Id
                 };
                 return Ok(result);
             }
+        }
+        [HttpPost("edit/{id}")]
+        public async Task<IActionResult> Edit([FromForm] ItemCreateViewModel model)
+        {
+            var itemEdit = await applicationContext.Books.FirstOrDefaultAsync(a => a.Id == model.Id);
+            if (itemEdit == null)
+            {
+                return NotFound();
+            }
+            String imageName = itemEdit.Image;
+
+            if (model.Image != null)
+            {
+                string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", itemEdit.Image);
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+
+                var fileExp = Path.GetExtension(model.Image.FileName);
+                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                imageName = Path.GetRandomFileName() + fileExp;
+
+                using (var ms = new MemoryStream())
+                {
+                    await model.Image.CopyToAsync(ms);
+                    var bmp = new Bitmap(System.Drawing.Image.FromStream(ms));
+                    var saveImage = ImageWorker.CompressImage(bmp, 700, 700, false);
+                    saveImage.Save(Path.Combine(dirSave, imageName));
+                }
+            }
+
+            itemEdit.Description = model.Description;
+            itemEdit.Price = Convert.ToInt32(model.Price);
+            itemEdit.Description = model.Description;
+            itemEdit.AuthorId = model.AuthorId;
+            itemEdit.PublishingHouseId = model.PublishingHouseId;
+            itemEdit.CategoryId = model.CategoryId;
+            itemEdit.Image = imageName;
+            itemEdit.Name = model.Name;
+            applicationContext.Entry(itemEdit).State = EntityState.Modified;
+            await applicationContext.SaveChangesAsync();
+
+            return Ok(itemEdit);
+
         }
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(string id)
@@ -130,9 +175,10 @@ namespace BookShopAPI.Controllers
             var book = await applicationContext.Books.FindAsync(bookId);
             if (book == null)
                 return NotFound();
-             
-            var bookImages = await applicationContext.ImagesBook.Where(img => img.ItemId == bookId).ToListAsync();
-             
+
+            var bookImages = await applicationContext.ImagesBook.
+                Where(img => img.ItemId == bookId).ToListAsync();
+
             foreach (var image in bookImages)
             {
                 string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", image.Url);

@@ -3,6 +3,9 @@ using BookShopAPI.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BookShopAPI.Models.Item;
+using BookShopAPI.Helpers;
+using BookShopAPI.Models.Author;
+using System.Drawing;
 
 namespace BookShopAPI.Controllers
 {
@@ -31,6 +34,23 @@ namespace BookShopAPI.Controllers
         {
             var result = await applicationContext.Blogs.ToListAsync();
             return Ok(result);
+        }
+        [HttpPost("edit/{id}")]
+        public async Task<IActionResult> Edit([FromForm] BlogEntity model)
+        {
+            var itemEdit = await applicationContext.Blogs.FirstOrDefaultAsync(a => a.Id == model.Id);
+            if (itemEdit == null)
+            {
+                return NotFound();
+            }  
+            itemEdit.Title = model.Title;
+            itemEdit.Content = model.Content; 
+
+            applicationContext.Entry(itemEdit).State = EntityState.Modified;
+            await applicationContext.SaveChangesAsync();
+
+            return Ok(itemEdit);
+
         }
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] BlogEntity model)

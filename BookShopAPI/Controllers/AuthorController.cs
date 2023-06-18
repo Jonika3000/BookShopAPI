@@ -41,11 +41,55 @@ namespace BookShopAPI.Controllers
         public async Task<IActionResult> authorById(string id)
         {
            SqlParameter param = new  SqlParameter("@id", id);
-            var result = await applicationContext.Authors.FromSqlRaw($"EXEC GetAuthorDataById @id",param).ToListAsync();
+            var result = await applicationContext.Authors.
+                FromSqlRaw($"EXEC GetAuthorDataById @id",param).ToListAsync();
             if (result[0] == null)
                 return BadRequest();
             else
             return Ok(result[0]);
+        }
+        [HttpPost("edit/{id}")]
+        public async Task<IActionResult> Edit([FromForm] AuthorCreateViewModel model)
+        {
+            var itemEdit = await applicationContext.Authors.FirstOrDefaultAsync(a => a.Id == model.Id);
+            if (itemEdit == null)
+            {
+                return NotFound();
+            }
+            String imageName = itemEdit.Image;
+
+            if (model.Image != null)
+            {
+                string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", itemEdit.Image);
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+
+                var fileExp = Path.GetExtension(model.Image.FileName);
+                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                imageName = Path.GetRandomFileName() + fileExp;
+
+                using (var ms = new MemoryStream())
+                {
+                    await model.Image.CopyToAsync(ms);
+                    var bmp = new Bitmap(System.Drawing.Image.FromStream(ms));
+                    var saveImage = ImageWorker.CompressImage(bmp, 700, 700, false);
+                    saveImage.Save(Path.Combine(dirSave, imageName));
+                }
+            }
+
+            itemEdit.FirstName = model.FirstName;
+            itemEdit.Surname = model.Surname;
+            itemEdit.Description = model.Description;
+            itemEdit.Year = model.Year;
+            itemEdit.Image = imageName;
+
+            applicationContext.Entry(itemEdit).State = EntityState.Modified;
+            await applicationContext.SaveChangesAsync();
+
+            return Ok(itemEdit);
+
         }
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(string id)

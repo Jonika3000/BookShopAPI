@@ -7,6 +7,7 @@ using BookShopAPI.Models.PublishingHouse;
 using BookShopAPI.Helpers;
 using System.Drawing;
 using Microsoft.Data.SqlClient;
+using BookShopAPI.Models.Author;
 
 namespace BookShopAPI.Controllers
 {
@@ -35,7 +36,47 @@ namespace BookShopAPI.Controllers
                 .ToListAsync();
             return Ok(result);
         }
+        [HttpPost("edit/{id}")]
+        public async Task<IActionResult> Edit([FromForm] PublishingHouseCreateViewModel model)
+        {
+            var itemEdit = await applicationContext.PublishingHouses.FirstOrDefaultAsync(a => a.Id == model.Id);
+            if (itemEdit == null)
+            {
+                return NotFound();
+            }
+            String imageName = itemEdit.Image;
 
+            if (model.Image != null)
+            {
+                string imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", itemEdit.Image);
+                if (System.IO.File.Exists(imagePath))
+                {
+                    System.IO.File.Delete(imagePath);
+                }
+
+                var fileExp = Path.GetExtension(model.Image.FileName);
+                var dirSave = Path.Combine(Directory.GetCurrentDirectory(), "images");
+                imageName = Path.GetRandomFileName() + fileExp;
+
+                using (var ms = new MemoryStream())
+                {
+                    await model.Image.CopyToAsync(ms);
+                    var bmp = new Bitmap(System.Drawing.Image.FromStream(ms));
+                    var saveImage = ImageWorker.CompressImage(bmp, 700, 700, false);
+                    saveImage.Save(Path.Combine(dirSave, imageName));
+                }
+            }
+
+            itemEdit.Description = model.Description;
+            itemEdit.Name = model.Name;
+            itemEdit.Image = imageName; 
+
+            applicationContext.Entry(itemEdit).State = EntityState.Modified;
+            await applicationContext.SaveChangesAsync();
+
+            return Ok(itemEdit);
+
+        }
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromForm] PublishingHouseCreateViewModel model)
         {

@@ -21,6 +21,24 @@ namespace BookShopAPI.Controllers
             var result = await applicationContext.Categories.ToListAsync();
             return Ok(result);
         }
+        [HttpPost("edit/{id}")]
+        public async Task<IActionResult> Edit([FromForm] CategoryEntity model)
+        {
+            var itemEdit = await applicationContext.Categories.FirstOrDefaultAsync(a => a.Id == model.Id);
+            if (itemEdit == null)
+            {
+                return NotFound();
+            }
+            itemEdit.Slug = model.Slug;
+            itemEdit.Description = model.Description;
+            itemEdit.Name = model.Name;
+
+            applicationContext.Entry(itemEdit).State = EntityState.Modified;
+            await applicationContext.SaveChangesAsync();
+
+            return Ok(itemEdit);
+
+        }
         [HttpGet("category/{slug}")]
         public async Task<IActionResult> GetBooksBySlug(string Slug)
         {

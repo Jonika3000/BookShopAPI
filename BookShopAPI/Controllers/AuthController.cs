@@ -26,9 +26,9 @@ namespace BookShopAPI.Controllers
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user == null)
-                    return BadRequest("Не вірно вказані дані");
+                    return BadRequest("The specified data is incorrect");
                 if (!await _userManager.CheckPasswordAsync(user, model.Password))
-                    return BadRequest("Не вірно вказані дані");
+                    return BadRequest("The specified data is incorrect");
                 var token = await _jwtTokenService.CreateToken(user);
                 return Ok(new { token });
 
