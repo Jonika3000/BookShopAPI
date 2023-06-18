@@ -155,13 +155,15 @@ namespace BookShopAPI.Controllers
 
             itemEdit.Description = model.Description;
             itemEdit.Price = Convert.ToInt32(model.Price);
-            itemEdit.Description = model.Description;
-            itemEdit.AuthorId = model.AuthorId;
-            itemEdit.PublishingHouseId = model.PublishingHouseId;
+            //itemEdit.AuthorId = model.AuthorId;
+            //itemEdit.PublishingHouseId = model.PublishingHouseId;
             itemEdit.CategoryId = model.CategoryId;
             itemEdit.Image = imageName;
             itemEdit.Name = model.Name;
-            applicationContext.Entry(itemEdit).State = EntityState.Modified;
+            itemEdit.Id = model.Id;
+            itemEdit.PageCount = model.PageCount;
+
+             applicationContext.Entry(itemEdit).State = EntityState.Modified;
             await applicationContext.SaveChangesAsync();
 
             return Ok(itemEdit);
